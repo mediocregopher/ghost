@@ -12,7 +12,7 @@ var stopLock = sync.RWMutex{}
 
 // AddConn tells lazarus to set up a resurrection loop for the given remote
 // address
-func AddConn(raddr string) chan error {
+func AddConn(raddr string) {
 	errCh := make(chan error)
 	stopCh := make(chan bool)
 
@@ -21,7 +21,6 @@ func AddConn(raddr string) chan error {
 	stopChs[raddr] = stopCh
 
 	go connResurectLoop(raddr,errCh,stopCh)
-	return errCh
 }
 
 // RemoveConn tells lazarus, if it exists, to close the connection to raddr and

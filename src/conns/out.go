@@ -65,10 +65,7 @@ func connReadSpin(cw *connWrap) {
 		_,err := cw.conn.Read(b)
 
 		if err == io.EOF {
-			cw.ErrCh <- err
 			break
-		} else  if err != nil {
-			cw.ErrCh <- err
 		}
 	}
 
