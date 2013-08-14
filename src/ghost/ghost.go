@@ -31,6 +31,9 @@ func Listen(addr string) (chan *interface{},chan error,error) {
 // automatically resurrected if it gets disconnected. Once you've called this
 // you can call Send on the address and send it (almost) arbitrary data, as long
 // as you've Register()'d those structures on the other end.
+//
+// NOTE: This call is asynchronous, so the connection may not yet be established
+// if you try Send immediately after calling it
 func AddConn(raddr string) {
 	laz.AddConn(raddr)
 }
