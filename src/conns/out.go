@@ -6,6 +6,7 @@ import (
 	"common"
 	"encoding/gob"
 	"io"
+	"errors"
 )
 
 type connWrap struct {
@@ -109,9 +110,9 @@ func Send(raddr string, msg interface{}) error {
 
 	if cw,ok := conns[raddr]; ok {
 		return sendDirect(cw,msg)
+	} else {
+		return errors.New("connection not established")
 	}
-
-	return nil
 }
 
 func sendDirect(cw *connWrap, msg interface{}) error {
