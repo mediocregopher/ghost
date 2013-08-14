@@ -12,8 +12,7 @@ var stopLock = sync.RWMutex{}
 
 // AddConn tells lazarus to set up a resurrection loop for the given remote
 // address
-func AddConn(raddr string) (chan *interface{}, chan error) {
-	rcvCh := make(chan *interface{})
+func AddConn(raddr string) chan error {
 	errCh := make(chan error)
 	stopCh := make(chan bool)
 
@@ -21,8 +20,8 @@ func AddConn(raddr string) (chan *interface{}, chan error) {
 	defer stopLock.Unlock()
 	stopChs[raddr] = stopCh
 
-	go connResurectLoop(raddr,rcvCh,errCh,stopCh)
-	return rcvCh,errCh
+	go connResurectLoop(raddr,errCh,stopCh)
+	return errCh
 }
 
 // RemoveConn tells lazarus, if it exists, to close the connection to raddr and
@@ -36,9 +35,9 @@ func RemoveConn(raddr string) {
 	}
 }
 
-func connResurectLoop(raddr string, rcvCh chan *interface{}, errCh chan error, stopCh chan bool) {
+func connResurectLoop(raddr string, errCh chan error, stopCh chan bool) {
 	for {
-		go connLoop(raddr, rcvCh, errCh, stopCh)
+		go connLoop(raddr, errCh, stopCh)
 		select {
 			case _,ok := <- stopCh:
 				if !ok {
@@ -46,12 +45,11 @@ func connResurectLoop(raddr string, rcvCh chan *interface{}, errCh chan error, s
 				}
 		}
 	}
-	close(rcvCh)
 	close(errCh)
 }
 
 
-func connLoop(raddr string, rcvCh chan *interface{}, errCh chan error, stopCh chan bool) {
+func connLoop(raddr string, errCh chan error, stopCh chan bool) {
 
 	// Returning means the connection is fucked and we're gonna remake it. Wait
 	// both to hackily avoid race conditions and to not spam the remote server
@@ -67,16 +65,11 @@ func connLoop(raddr string, rcvCh chan *interface{}, errCh chan error, stopCh ch
 	}
 
 	var ok bool
-	var msg *interface{}
 	for {
 		select {
 			case err,ok = <- cw.ErrCh:
 				if ok {
 					errCh <- err
-				}
-			case msg,ok = <- cw.RcvCh:
-				if ok {
-					rcvCh <- msg
 				}
 			case _,ok = <- stopCh:
 		}

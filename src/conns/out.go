@@ -11,10 +11,8 @@ import (
 type connWrap struct {
 	Raddr string
 	conn net.Conn
-	RcvCh chan *interface{}
 	ErrCh chan error
 	enc *gob.Encoder
-	dec *gob.Decoder
 }
 
 var conns = map[string]*connWrap{}
@@ -30,7 +28,7 @@ func IsConnected(n string) bool {
 }
 
 // Add connects to the give remote address and adds it to the connection table,
-// at the same time setting up a connection spin to read messages on the
+// at the same time setting up a connection spin to read errors on the
 // connection. Returns the connection wrap object assuming there were no errors
 func Add(raddr string) (*connWrap,error) {
 	connsL.Lock()
@@ -48,10 +46,8 @@ func Add(raddr string) (*connWrap,error) {
 	cw := &connWrap{
 		Raddr: raddr,
 		conn: c,
-		RcvCh: make(chan *interface{}),
 		ErrCh: make(chan error),
 		enc: gob.NewEncoder(c),
-		dec: gob.NewDecoder(c),
 	}
 	conns[raddr] = cw
 
@@ -63,21 +59,20 @@ func Add(raddr string) (*connWrap,error) {
 
 func connReadSpin(cw *connWrap) {
 	for {
-		var msg *common.MsgWrap
-		err := cw.dec.Decode(msg)
+		// We'll never actually get any data here, but you gotta block on
+		// something right?
+		b := make([]byte,1)
+		_,err := cw.conn.Read(b)
 
 		if err == io.EOF {
 			cw.ErrCh <- err
 			break
 		} else  if err != nil {
 			cw.ErrCh <- err
-		} else {
-			cw.RcvCh <- &msg.Msg
 		}
 	}
 
 	Remove(cw.Raddr)
-	close(cw.RcvCh)
 	close(cw.ErrCh)
 	cw.conn.Close()
 }
@@ -109,20 +104,22 @@ func Remove(raddr string) bool {
 	return false
 }
 
-// Send sendss a message to the remote location if the channel is in the table
+// Send sends a message to the remote location if the channel is in the table
 // and currently available for sending
-func Send(raddr string, msg interface{}) {
+func Send(raddr string, msg interface{}) error {
 	connsL.RLock()
 	defer connsL.RUnlock()
 
 	if cw,ok := conns[raddr]; ok {
-		sendDirect(cw,msg)
+		return sendDirect(cw,msg)
 	}
+
+	return nil
 }
 
-func sendDirect(cw *connWrap, msg interface{}) {
+func sendDirect(cw *connWrap, msg interface{}) error {
 	msgwrap := &common.MsgWrap{ msg }
-	cw.enc.Encode(msgwrap)
+	return cw.enc.Encode(msgwrap)
 }
 
 // SendAll loops through and asynchronously sends a message to all currently
