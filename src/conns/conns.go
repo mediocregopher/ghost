@@ -1,17 +1,20 @@
-package ns
+package conns
 
 import (
 	"net"
 	"sync"
 	"common"
+	"encoding/gob"
+	"io"
 )
 
 type connWrap struct {
-	Conn net.Conn
-	SendCh chan *common.MsgWrap
-	RcvCh chan *common.MsgWrap
+	Raddr string
+	conn net.Conn
+	RcvCh chan *interface{}
 	ErrCh chan error
-	CloseCh chan bool
+	enc *gob.Encoder
+	dec *gob.Decoder
 }
 
 var conns = map[string]*connWrap{}
@@ -27,34 +30,56 @@ func IsConnected(n string) bool {
 }
 
 // Add connects to the give remote address and adds it to the connection table,
-// at the same time setting up a connection spin routing to read and write
-// messages on the connection
-func Add(raddr string) (bool,error) {
+// at the same time setting up a connection spin to read messages on the
+// connection. Returns the connection wrap object assuming there were no errors
+func Add(raddr string) (*connWrap,error) {
 	connsL.Lock()
 	defer connsL.Unlock()
 
-	if _,ok := conns[raddr]; ok {
-		return true,nil
+	if cw,ok := conns[raddr]; ok {
+		return cw,nil
 	}
 
 	c,err := net.Dial("tcp",raddr)
 	if err != nil {
-		return false,err
+		return nil,err
 	}
 
 	cw := &connWrap{
-		Conn: c,
-		SendCh: make(chan *common.MsgWrap),
-		RcvCh: make(chan *common.MsgWrap),
+		Raddr: raddr,
+		conn: c,
+		RcvCh: make(chan *interface{}),
 		ErrCh: make(chan error),
-		CloseCh: make(chan bool),
+		enc: gob.NewEncoder(c),
+		dec: gob.NewDecoder(c),
 	}
 	conns[raddr] = cw
 
-	go connSpin(cw)
+	go connReadSpin(cw)
 
-	return false,nil
+	return cw,nil
 
+}
+
+func connReadSpin(cw *connWrap) {
+	for {
+		var msg *common.MsgWrap
+		err := cw.dec.Decode(msg)
+
+		if err == io.EOF {
+			cw.ErrCh <- err
+			break
+		} else  if err != nil {
+			cw.ErrCh <- err
+		} else {
+			cw.RcvCh <- &msg.Msg
+		}
+	}
+
+	Remove(cw.Raddr)
+	close(cw.RcvCh)
+	close(cw.ErrCh)
+	cw.conn.Close()
 }
 
 // Get gets the connWrap struct for an address, and bool for whether it was
@@ -73,10 +98,46 @@ func Remove(raddr string) bool {
 	connsL.Lock()
 	defer connsL.Unlock()
 
-	if _,ok := conns[raddr]; ok {
+	if cw,ok := conns[raddr]; ok {
+		//TODO if someone Removes then immediately Adds a connection it could
+		//possibly get Remove'd again by connReadSpin
+		cw.conn.Close()
 		delete(conns,raddr)
 		return true
 	}
 
 	return false
+}
+
+// Send sendss a message to the remote location if the channel is in the table
+// and currently available for sending
+func Send(raddr string, msg interface{}) {
+	connsL.RLock()
+	defer connsL.RUnlock()
+
+	if cw,ok := conns[raddr]; ok {
+		sendDirect(cw,msg)
+	}
+}
+
+func sendDirect(cw *connWrap, msg interface{}) {
+	msgwrap := &common.MsgWrap{ msg }
+	cw.enc.Encode(msgwrap)
+}
+
+// SendAll loops through and asynchronously sends a message to all currently
+// active connections
+func SendAll(msg interface{}) {
+	connsL.RLock()
+	defer connsL.RUnlock()
+
+	for _,cw := range conns {
+		go sendDirect(cw,msg)
+	}
+}
+
+// Register registers a type as a potential decode unmarshalling type. This must
+// be done for all message types that will be sent.
+func Register(something interface{}) {
+	gob.Register(something)
 }
