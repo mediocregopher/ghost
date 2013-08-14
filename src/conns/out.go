@@ -12,7 +12,7 @@ import (
 type connWrap struct {
 	Raddr string
 	conn net.Conn
-	ErrCh chan error
+	CloseCh chan bool
 	enc *gob.Encoder
 }
 
@@ -47,7 +47,7 @@ func Add(raddr string) (*connWrap,error) {
 	cw := &connWrap{
 		Raddr: raddr,
 		conn: c,
-		ErrCh: make(chan error),
+		CloseCh: make(chan bool),
 		enc: gob.NewEncoder(c),
 	}
 	conns[raddr] = cw
@@ -71,7 +71,7 @@ func connReadSpin(cw *connWrap) {
 	}
 
 	Remove(cw.Raddr)
-	close(cw.ErrCh)
+	close(cw.CloseCh)
 	cw.conn.Close()
 }
 

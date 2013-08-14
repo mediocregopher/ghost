@@ -13,14 +13,13 @@ var stopLock = sync.RWMutex{}
 // AddConn tells lazarus to set up a resurrection loop for the given remote
 // address
 func AddConn(raddr string) {
-	errCh := make(chan error)
 	stopCh := make(chan bool)
 
 	stopLock.Lock()
 	defer stopLock.Unlock()
 	stopChs[raddr] = stopCh
 
-	go connResurectLoop(raddr,errCh,stopCh)
+	go connResurectLoop(raddr,stopCh)
 }
 
 // RemoveConn tells lazarus, if it exists, to close the connection to raddr and
@@ -34,9 +33,9 @@ func RemoveConn(raddr string) {
 	}
 }
 
-func connResurectLoop(raddr string, errCh chan error, stopCh chan bool) {
+func connResurectLoop(raddr string, stopCh chan bool) {
 	for {
-		go connLoop(raddr, errCh, stopCh)
+		go connLoop(raddr, stopCh)
 		select {
 			case _,ok := <- stopCh:
 				if !ok {
@@ -44,32 +43,28 @@ func connResurectLoop(raddr string, errCh chan error, stopCh chan bool) {
 				}
 		}
 	}
-	close(errCh)
 }
 
 
-func connLoop(raddr string, errCh chan error, stopCh chan bool) {
+func connLoop(raddr string, stopCh chan bool) {
 
 	// Returning means the connection is fucked and we're gonna remake it. Wait
 	// both to hackily avoid race conditions and to not spam the remote server
-	// if it's having a bad day
-	defer conns.Remove(raddr)
-	defer time.Sleep(2 * time.Second)
+	// if it's having a bad day (remember defer statements execute in reverse
+	// order that they're defined)
 	defer sendStop(stopCh)
+	defer time.Sleep(2 * time.Second)
+	defer conns.Remove(raddr)
 
 	cw,err := conns.Add(raddr)
 	if err != nil {
-		errCh <- err
 		return
 	}
 
 	var ok bool
 	for {
 		select {
-			case err,ok = <- cw.ErrCh:
-				if ok {
-					errCh <- err
-				}
+			case _,ok = <- cw.CloseCh:
 			case _,ok = <- stopCh:
 		}
 
