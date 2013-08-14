@@ -38,8 +38,8 @@ func listenLoop(l net.Listener, rcvCh chan *interface{}, errCh chan error) {
 func connLoop(conn net.Conn, rcvCh chan *interface{}, errCh chan error) {
 	dec := gob.NewDecoder(conn)
 	for {
-		var msgwrap *common.MsgWrap
-		err := dec.Decode(msgwrap)
+		var msgwrap common.MsgWrap
+		err := dec.Decode(&msgwrap)
 		if err == io.EOF {
 			break
 		} else if err != nil {
