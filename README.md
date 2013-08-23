@@ -29,7 +29,7 @@ or
     "loc":"https://github.com/mediocregopher/ghost.git",
     "type":"git",
     "reference":"v0.1.0",
-    "path":"github.com/mediocregopher/ghost"
+    "path":"github.com/mediocregopher/ghost/src/ghost"
 }
 ```
 
