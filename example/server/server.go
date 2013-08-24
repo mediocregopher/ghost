@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ghost"
+	"github.com/mediocregopher/ghost"
 	"log"
 )
 

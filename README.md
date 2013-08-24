@@ -28,8 +28,8 @@ or
 {
     "loc":"https://github.com/mediocregopher/ghost.git",
     "type":"git",
-    "reference":"v0.1.0",
-    "path":"github.com/mediocregopher/ghost/src/ghost"
+    "reference":"v0.2.0",
+    "path":"github.com/mediocregopher/ghost"
 }
 ```
 
@@ -37,6 +37,6 @@ Then when you want to use it import `github.com/mediocregopher/ghost/src/ghost`
 
 # Docs
 
-Check out the [ghost.go](/src/ghost/ghost.go) file for externally
+Check out the [ghost.go](/ghost.go) file for externally
 available methods. Also check out the [example](/example) code to see actual
 usage.
