@@ -13,7 +13,7 @@ type Hello struct {
 func main() {
 	ghost.Register(Hello{})
 
-	rcvCh,errCh,err := ghost.Listen(":4000")
+	rcvCh, errCh, err := ghost.Listen(":4000")
 	if err != nil {
 		log.Fatal(err.Error())
 		return
@@ -21,16 +21,16 @@ func main() {
 
 	log.Println("Listening")
 
-	go func(){
+	go func() {
 		for err := range errCh {
 			log.Println(err.Error())
 		}
 	}()
 
-	go func(){
+	go func() {
 		for msg := range rcvCh {
 			msgW := (*msg).(Hello)
-			log.Printf("Got Hello message: %v",msgW)
+			log.Printf("Got Hello message: %v", msgW)
 		}
 	}()
 

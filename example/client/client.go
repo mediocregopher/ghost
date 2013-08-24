@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/mediocregopher/ghost"
-	"time"
 	"log"
+	"time"
 )
 
 const SERVER = "localhost:4000"
@@ -15,7 +15,7 @@ type Hello struct {
 
 func main() {
 	ghost.Register(Hello{})
-	ghost.AddConn(SERVER)	
+	ghost.AddConn(SERVER)
 	for {
 		time.Sleep(1 * time.Second)
 
@@ -23,7 +23,7 @@ func main() {
 		msg := Hello{"This is A", 2}
 		err := ghost.Send(SERVER, msg)
 		if err != nil {
-			log.Println("ERR",err)
+			log.Println("ERR", err)
 		}
 	}
 }
