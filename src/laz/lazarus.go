@@ -2,13 +2,12 @@ package laz
 
 import (
 	"github.com/mediocregopher/ghost/src/conns"
-	"time"
 	"sync"
+	"time"
 )
 
 var stopChs = map[string]chan bool{}
 var stopLock = sync.RWMutex{}
-
 
 // AddConn tells lazarus to set up a resurrection loop for the given remote
 // address
@@ -19,7 +18,7 @@ func AddConn(raddr string) {
 	defer stopLock.Unlock()
 	stopChs[raddr] = stopCh
 
-	go connResurectLoop(raddr,stopCh)
+	go connResurectLoop(raddr, stopCh)
 }
 
 // RemoveConn tells lazarus, if it exists, to close the connection to raddr and
@@ -28,7 +27,7 @@ func RemoveConn(raddr string) {
 	stopLock.RLock()
 	defer stopLock.RUnlock()
 
-	if stopCh,ok := stopChs[raddr]; ok {
+	if stopCh, ok := stopChs[raddr]; ok {
 		close(stopCh)
 	}
 }
@@ -37,14 +36,13 @@ func connResurectLoop(raddr string, stopCh chan bool) {
 	for {
 		go connLoop(raddr, stopCh)
 		select {
-			case _,ok := <- stopCh:
-				if !ok {
-					break
-				}
+		case _, ok := <-stopCh:
+			if !ok {
+				break
+			}
 		}
 	}
 }
-
 
 func connLoop(raddr string, stopCh chan bool) {
 
@@ -56,7 +54,7 @@ func connLoop(raddr string, stopCh chan bool) {
 	defer time.Sleep(2 * time.Second)
 	defer conns.Remove(raddr)
 
-	cw,err := conns.Add(raddr)
+	cw, err := conns.Add(raddr)
 	if err != nil {
 		return
 	}
@@ -64,8 +62,8 @@ func connLoop(raddr string, stopCh chan bool) {
 	var ok bool
 	for {
 		select {
-			case _,ok = <- cw.CloseCh:
-			case _,ok = <- stopCh:
+		case _, ok = <-cw.CloseCh:
+		case _, ok = <-stopCh:
 		}
 
 		if !ok {
