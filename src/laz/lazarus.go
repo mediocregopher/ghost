@@ -1,7 +1,7 @@
 package laz
 
 import (
-	"conns"
+	"github.com/mediocregopher/ghost/src/conns"
 	"time"
 	"sync"
 )

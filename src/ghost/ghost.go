@@ -1,8 +1,8 @@
 package ghost
 
 import (
-	"conns"
-	"laz"
+	"github.com/mediocregopher/ghost/src/conns"
+	"github.com/mediocregopher/ghost/src/laz"
 )
 
 // Listen for ghost connections on a given address.

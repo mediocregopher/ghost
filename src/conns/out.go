@@ -3,7 +3,7 @@ package conns
 import (
 	"net"
 	"sync"
-	"common"
+	"github.com/mediocregopher/ghost/src/common"
 	"encoding/gob"
 	"io"
 	"errors"
