@@ -23,12 +23,12 @@ long-running communication connections to each other on.
 
 or
 
-[goat](http://github.com/mediocregopher/goat):
+[goat][0]:
 ```json
 {
     "loc":"https://github.com/mediocregopher/ghost.git",
     "type":"git",
-    "reference":"v0.2.0",
+    "reference":"v0.2.1",
     "path":"github.com/mediocregopher/ghost"
 }
 ```
@@ -37,6 +37,8 @@ Then when you want to use it import `github.com/mediocregopher/ghost/src/ghost`
 
 # Docs
 
-Check out the [ghost.go](/ghost.go) file for externally
-available methods. Also check out the [example](/example) code to see actual
-usage.
+Check out [docs][1] for externally available methods.  Also check out the
+[example](/example) code to see actual usage.
+
+[0]: http://github.com/mediocregopher/goat
+[1]: http://godoc.org/github.com/mediocregopher/ghost
