@@ -23,7 +23,7 @@ import (
 //
 // It's important that the message and error channels are always read from,
 // otherwise it could (read: will!) block up internal processes
-func Listen(addr string) (chan *interface{}, chan error, error) {
+func Listen(addr string) (chan interface{}, chan error, error) {
 	return conns.Listen(addr)
 }
 

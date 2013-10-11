@@ -29,7 +29,7 @@ func main() {
 
 	go func() {
 		for msg := range rcvCh {
-			msgW := (*msg).(Hello)
+			msgW := msg.(Hello)
 			log.Printf("Got Hello message: %v", msgW)
 		}
 	}()
