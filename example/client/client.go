@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const SERVER = "localhost:4000"
+var SERVER = "localhost:4000"
 
 type Hello struct {
 	A string
@@ -15,13 +15,15 @@ type Hello struct {
 
 func main() {
 	ghost.Register(Hello{})
-	ghost.AddConn(SERVER)
+	if err := ghost.AddConn(&SERVER); err != nil {
+		log.Fatal(err)
+	}
 	for {
 		time.Sleep(1 * time.Second)
 
 		log.Println("Sending to server")
 		msg := Hello{"This is A", 2}
-		err := ghost.Send(SERVER, msg)
+		err := ghost.Send(&SERVER, msg)
 		if err != nil {
 			log.Println("ERR", err)
 		}

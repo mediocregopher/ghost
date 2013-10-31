@@ -28,12 +28,12 @@ or
 {
     "loc":"https://github.com/mediocregopher/ghost.git",
     "type":"git",
-    "reference":"v0.2.1",
+    "reference":"v0.3.0",
     "path":"github.com/mediocregopher/ghost"
 }
 ```
 
-Then when you want to use it import `github.com/mediocregopher/ghost/src/ghost`
+Then when you want to use it import `github.com/mediocregopher/ghost`
 
 # Docs
 

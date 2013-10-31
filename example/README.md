@@ -6,6 +6,6 @@ installed.
 
 # Usage
 
-Call `go run` on each script individually. Order doesn't actually matter, and
-you should be able to kill either script and bring it back up and have things
-resume normally fairly quickly.
+Call `go run` on each script individually, first the server then the client.
+After starting them you should be able to kill either script and bring it back
+up and have things go back to normal fairly quickly.
