@@ -23,22 +23,20 @@ long-running communication connections to each other on.
 
 or
 
-[goat][0]:
-```json
-{
-    "loc":"https://github.com/mediocregopher/ghost.git",
-    "type":"git",
-    "reference":"v0.3.0",
-    "path":"github.com/mediocregopher/ghost"
-}
+[.go.yaml][goat]:
+```yaml
+    - loc: https://github.com/mediocregopher/ghost.git
+      type: git
+      ref: v0.3.1
+      path: github.com/mediocregopher/ghost
 ```
 
 Then when you want to use it import `github.com/mediocregopher/ghost`
 
 # Docs
 
-Check out [docs][1] for externally available methods.  Also check out the
+Check out [docs][godoc] for externally available methods.  Also check out the
 [example](/example) code to see actual usage.
 
-[0]: http://github.com/mediocregopher/goat
-[1]: http://godoc.org/github.com/mediocregopher/ghost
+[goat]: http://github.com/mediocregopher/goat
+[godoc]: http://godoc.org/github.com/mediocregopher/ghost
